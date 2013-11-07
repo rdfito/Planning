@@ -49,13 +49,14 @@ int main(int argc, char *argv[]) {
                 }
             }
             fclose(fp);
+
+            /* Verificacion de numero de valores */
+            if(i != size) {
+                printf("Error: %d valores para %d procesos\n", i, size);
+                parada = 1;
+            }
         }
-        /* Verificacion de valores del archivo de datos */
-        if(i != size) {
-            printf("Error: %d valores para %d procesos\n", i, size);
-            parada = 1;
-        }
-        /* Ennvio de control */
+        /* Envio de control */
         i=0;
         while(i < size) {
             MPI_Send(&parada, 1, MPI_INT, i, CTRL, MPI_COMM_WORLD);
