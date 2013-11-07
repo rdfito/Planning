@@ -70,8 +70,9 @@ int main(int argc, char *argv[]) {
                 i++;
             }
         }
-    }
+    } /* Fin rank 0 */
     
+    /* Todos los procesos */
     MPI_Recv(&parada, 1, MPI_INT, 0, CTRL, MPI_COMM_WORLD, &st);
     if(parada == 0) {
         MPI_Recv(&valor, 1, MPI_DOUBLE, 0, DATA, MPI_COMM_WORLD, &st);
