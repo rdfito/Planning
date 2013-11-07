@@ -1,59 +1,68 @@
 #include <stdio.h>
-#include <string.h>
+#include <math.h>
 #include <mpi.h>
 
 #define DOTDAT "datos.dat"
-#define TAG 0
+
 #define CTRL 0
 #define DATA 1
-#define N 0
-#define E 1 
-#define S 2
-#define W 3
+
+#define NORTE 0
+#define ESTE  1 
+#define SUR   2
+#define OESTE 3
 
 int vecino(int dir, int lado, int id);
 
 int main(int argc, char *argv[]) {
 	int rank, size;
     double valor;
+    double aux;
     int parada;
+    int lado;
+    int i = 0;
     MPI_Status st;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     
-    /* RANK 0 */
+    lado = sqrt(size);
+
+    /* RANK 0 
+    *************************/
     if(rank == 0) {
         double datos[size];
         double n;
-        int i = 0;
         FILE *fp; 
         parada = 0;
 
-        printf("[%d] Red toroidal de %d procesos\n", rank, size);
-
-        /* Verificacion del archivo de datos */
-        fp = fopen(DOTDAT, "r");
-        if(fp == NULL) {
-            printf("Error: Archivo \"%s\" no encontrado\n", DOTDAT);
+        printf("Red toroidal de %d procesos\n", size);
+        /* Verificacion de procesos */
+        if((lado*lado) != size) {
+            printf("Error: Numero de procesos incorrecto\n");
             parada = 1;
         } else {
-            while(!feof(fp)) {
-                /* lee double seguido de char (que ignora) */
-                if(fscanf(fp, "%lf%*c", &n) == 1) {
-                    if(i <= size-1) {
-                        datos[i] = n;
-                    }
-                    i++;
-                }
-            }
-            fclose(fp);
-
-            /* Verificacion de numero de valores */
-            if(i != size) {
-                printf("Error: %d valores para %d procesos\n", i, size);
+            /* Verificacion del archivo de datos */
+            fp = fopen(DOTDAT, "r");
+            if(fp == NULL) {
+                printf("Error: Archivo \"%s\" no encontrado\n", DOTDAT);
                 parada = 1;
+            } else {
+                while(!feof(fp) && i<size) {
+                    /* lee double seguido de char (que ignora) */
+                    if(fscanf(fp, "%lf%*c", &n) == 1) {
+                        datos[i] = n;
+                        i++;
+                    }
+                }
+                fclose(fp);
+
+                /* Verificacion de numero de valores */
+                if(i != size) {
+                    printf("Error: %d valores para %d procesos\n", i, size);
+                    parada = 1;
+                }
             }
         }
         /* Envio de control */
@@ -72,19 +81,34 @@ int main(int argc, char *argv[]) {
         }
     } /* Fin rank 0 */
     
-    /* Todos los procesos */
+    /* Todos los procesos 
+    *************************/
     MPI_Recv(&parada, 1, MPI_INT, 0, CTRL, MPI_COMM_WORLD, &st);
     if(parada == 0) {
         MPI_Recv(&valor, 1, MPI_DOUBLE, 0, DATA, MPI_COMM_WORLD, &st);
-        printf("[%d] Valor = %.3f\n", rank, valor);
+        printf("[%d] Recibido: %.3f\n", rank, valor);
+        
+        /* Cominucacion Norte-Sur */
+        for(i=1;i<lado;i++) {
+            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(NORTE, lado, rank), 
+                    DATA, MPI_COMM_WORLD);
+            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(SUR,   lado, rank), 
+                    DATA, MPI_COMM_WORLD, &st);
+            if(aux < valor) valor = aux;
+        }
+
+        /* Comunicacion Este-Oeste */
+        for(i=1;i<lado;i++) {
+            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(ESTE,  lado, rank), 
+                    DATA, MPI_COMM_WORLD);
+            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(OESTE, lado, rank), 
+                    DATA, MPI_COMM_WORLD, &st);
+            if(aux < valor) valor = aux;
+        }
+        /*if (rank == 0)*/
+            printf("[%d] Minimo: %.3f\n", rank, valor);
     }
-
-    /*for(i=1;i<lado;i++) {
-        Send(vecino(N));
-        Recv(vecino(S));
-        comparar;
-    }*/
-
+    
     MPI_Finalize();
 	
     return 0;
@@ -93,16 +117,17 @@ int main(int argc, char *argv[]) {
 int vecino(int dir, int lado, int id) {
     int v = -1;
     switch(dir) {
-        case N:
+        case NORTE:
             v = (id+lado)%(lado*lado); break;
-        case S:
-            v = (id-lado)%(lado*lado); break;
-        case E:
+        case SUR:
+            v = (id-lado)%(lado*lado);
+            if(v < 0) v += lado*lado; break;
+        case ESTE:
             v = (id+1)%lado+lado*(id/lado); break;
-        case W:
-            v = (id-1)%lado+lado*(id/lado); break;
+        case OESTE:
+            v = (id-1)%lado+lado*(id/lado); 
+            if(v < 0) v += lado; break;
     }
-
     return v;
 }
 
