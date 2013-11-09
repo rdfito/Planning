@@ -90,18 +90,18 @@ int main(int argc, char *argv[]) {
         
         /* Cominucacion Norte-Sur */
         for(i=1;i<lado;i++) {
-            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(NORTE, lado, rank), 
+            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(rank, lado, NORTE), 
                     DATA, MPI_COMM_WORLD);
-            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(SUR,   lado, rank), 
+            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(rank, lado, SUR), 
                     DATA, MPI_COMM_WORLD, &st);
             if(aux < valor) valor = aux;
         }
 
         /* Comunicacion Este-Oeste */
         for(i=1;i<lado;i++) {
-            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(ESTE,  lado, rank), 
+            MPI_Send(&valor, 1, MPI_DOUBLE, vecino(rank, lado, ESTE), 
                     DATA, MPI_COMM_WORLD);
-            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(OESTE, lado, rank), 
+            MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(rank, lado, OESTE), 
                     DATA, MPI_COMM_WORLD, &st);
             if(aux < valor) valor = aux;
         }
@@ -113,8 +113,8 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
-/* id+2^(d-1)   XOR    1 << i-1 */
-int vecino(int dir, int lado, int id) {
+
+int vecino(int id, int lado, int dir) {
     int v = -1;
     switch(dir) {
         case NORTE:
