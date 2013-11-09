@@ -15,7 +15,7 @@
 int vecino(int dir, int lado, int id);
 
 int main(int argc, char *argv[]) {
-	int rank, size;
+    int rank, size;
     double valor;
     double aux;
     int parada;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     MPI_Recv(&parada, 1, MPI_INT, 0, CTRL, MPI_COMM_WORLD, &st);
     if(parada == 0) {
         MPI_Recv(&valor, 1, MPI_DOUBLE, 0, DATA, MPI_COMM_WORLD, &st);
-        printf("[%d] Recibido: %.3f\n", rank, valor);
+        printf("[%d] Recibido: %f\n", rank, valor);
         
         /* Cominucacion Norte-Sur */
         for(i=1;i<lado;i++) {
@@ -106,11 +106,11 @@ int main(int argc, char *argv[]) {
             if(aux < valor) valor = aux;
         }
         /*if (rank == 0)*/
-            printf("[%d] Minimo: %.3f\n", rank, valor);
+            printf("[%d] Minimo: %f\n", rank, valor);
     }
     
     MPI_Finalize();
-	
+    
     return 0;
 }
 /* id+2^(d-1)   XOR    1 << i-1 */
@@ -120,7 +120,7 @@ int vecino(int dir, int lado, int id) {
         case NORTE:
             v = (id+lado)%(lado*lado); break;
         case SUR:
-            v = (id-lado)%(lado*lado);
+            v = (id-lado);
             if(v < 0) v += lado*lado; break;
         case ESTE:
             v = (id+1)%lado+lado*(id/lado); break;
