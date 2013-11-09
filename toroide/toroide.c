@@ -12,7 +12,7 @@
 #define SUR   2
 #define OESTE 3
 
-int vecino(int dir, int lado, int id);
+int vecino(int id, int lado, int dir);
 
 int main(int argc, char *argv[]) {
     int rank, size;
