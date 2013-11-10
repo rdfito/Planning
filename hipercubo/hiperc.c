@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         printf("[%d] Recibido: %f\n", rank, valor);
 
         for(i=0;i<dimen;i++) {
-        /* Cominucacion vecinal */
+        /* Cominucacion, un eje en cada iteracion */
             MPI_Send(&valor, 1, MPI_DOUBLE, vecino(rank, i), 
                     DATA, MPI_COMM_WORLD);
             MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(rank, i), 
