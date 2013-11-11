@@ -7,7 +7,7 @@
 #define CTRL 0
 #define DATA 1
 
-int vecino(int, int);
+int vecino(int id, int eje);
 
 int main(int argc, char *argv[]) {
     int rank, size;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
                 }
                 fclose(fp);
 
-                /* Verificacion de numero de valores */
+                /* Verificacion de cantidad de valores */
                 if(i != size) {
                     printf("Error: %d valores para %d procesos\n", i, size);
                     parada = 1;
@@ -81,17 +81,17 @@ int main(int argc, char *argv[]) {
     MPI_Recv(&parada, 1, MPI_INT, 0, CTRL, MPI_COMM_WORLD, &st);
     if(parada == 0) {
         MPI_Recv(&valor, 1, MPI_DOUBLE, 0, DATA, MPI_COMM_WORLD, &st);
-        printf("[%d] Recibido: %f\n", rank, valor);
+        /*printf("[%d] Recibido: %f\n", rank, valor);*/
 
         for(i=0;i<dimen;i++) {
-        /* Cominucacion, un eje en cada iteracion */
+        /* Comunicacion, un eje en cada iteracion */
             MPI_Send(&valor, 1, MPI_DOUBLE, vecino(rank, i), 
                     DATA, MPI_COMM_WORLD);
             MPI_Recv(&aux,   1, MPI_DOUBLE, vecino(rank, i), 
                     DATA, MPI_COMM_WORLD, &st);
             if(aux > valor) valor = aux;
         }
-        /*if (rank == 0)*/
+        if (rank == 0)
             printf("[%d] Maximo: %f\n", rank, valor);
     }
     
@@ -102,7 +102,6 @@ int main(int argc, char *argv[]) {
 
 int vecino(int id, int eje) {
     /* id XOR (1 desplazado eje posiciones) */
-
     return id ^ (1 << eje);
 }
 

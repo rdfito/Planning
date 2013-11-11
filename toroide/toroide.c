@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
                 }
                 fclose(fp);
 
-                /* Verificacion de numero de valores */
+                /* Verificacion de cantidad de valores */
                 if(i != size) {
                     printf("Error: %d valores para %d procesos\n", i, size);
                     parada = 1;
@@ -86,9 +86,9 @@ int main(int argc, char *argv[]) {
     MPI_Recv(&parada, 1, MPI_INT, 0, CTRL, MPI_COMM_WORLD, &st);
     if(parada == 0) {
         MPI_Recv(&valor, 1, MPI_DOUBLE, 0, DATA, MPI_COMM_WORLD, &st);
-        printf("[%d] Recibido: %f\n", rank, valor);
+        /*printf("[%d] Recibido: %f\n", rank, valor);*/
         
-        /* Cominucacion Norte-Sur */
+        /* Comunicacion Norte-Sur */
         for(i=1;i<lado;i++) {
             MPI_Send(&valor, 1, MPI_DOUBLE, vecino(rank, lado, NORTE), 
                     DATA, MPI_COMM_WORLD);
